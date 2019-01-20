@@ -1,0 +1,24 @@
+# -*- coding:utf-8 -*-
+#+LANGUAGE:  zh
+#+TITLE:     README.org
+#+AUTHOR:    
+#+EMAIL:     schspa@gmail.com
+#+DATE:     2019-01-21 Mon
+#+DESCRIPTION:README.org
+#+KEYWORDS: shell
+#+TAGS:
+#+FILETAGS: 
+#+OPTIONS:   H:2 num:nil toc:t \n:t @:t ::t |:t ^:nil -:t f:t *:t <:t
+#+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil 
+#+LATEX_HEADER: \usepackage{fontspec}
+#+LATEX_HEADER: \setmainfont{PingFang SC}
+
+* script
+misc shell script
+
+** adb.sh
+*** used to automatically prompt user to select a device when multi device exits
+#+BEGIN_SRC shell
+curl https://raw.githubusercontent.com/schspa/script/master/adb.sh -o ~/.adb.sh
+echo "source ~/.adb.sh" >> ~/.zshrc
+#+END_SRC

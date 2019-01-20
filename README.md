@@ -1,2 +1,0 @@
-# script
-misc shell script
