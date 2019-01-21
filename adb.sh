@@ -26,14 +26,14 @@ function adba {
 		$ADB $@ 2>/dev/null
 		if [ $? != 0 ]; then
 			local num=0
-			local device_array=()
+			declare -a device_array=()
 			for i in `$ADB devices | awk '{ print $1 }'`; do
 				let "num+=1"
 				if [ $num != 1 ]; then
-					device_array+=$i
+					device_array+=($i)
 				fi
 			done
-			select i in $device_array; do
+			select i in ${device_array[*]}; do
 				echo "connect to $i"
 				$ADB -s $i $@
 				break
