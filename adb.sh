@@ -42,4 +42,3 @@ function adba {
 	fi
 }
 
-alias adb=adba
