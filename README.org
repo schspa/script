@@ -22,3 +22,36 @@ misc shell script
 curl https://raw.githubusercontent.com/schspa/script/master/adb.sh -o ~/.adb.sh
 echo "source ~/.adb.sh" >> ~/.zshrc
 #+END_SRC
+
+** maps-summary.py
+   #+BEGIN_SRC bash :exports both
+   ./maps-summary.py -p /proc/11481/maps
+   #+END_SRC
+
+   #+RESULTS:
+   |    size |   dev |  inode | path                                 |
+   |   45056 | 08:07 | 807096 | /usr/lib/xdg-document-portal         |
+   |  274432 | 00:00 |      0 | [heap]                               |
+   |  135168 | 00:00 |      0 |                                      |
+   | 6184960 | 08:07 | 811806 | /usr/lib/locale/locale-archive       |
+   |   12288 | 08:07 | 811793 | /usr/lib/librt-2.31.so               |
+   |   36864 | 08:07 | 790843 | /usr/lib/libblkid.so.1.1.0           |
+   |    4096 | 08:07 | 795581 | /usr/lib/libdl-2.31.so               |
+   |    8192 | 08:07 | 792709 | /usr/lib/libpcre.so.1.2.11           |
+   |    8192 | 08:07 | 792562 | /usr/lib/libffi.so.6.0.4             |
+   |   16384 | 08:07 | 811789 | /usr/lib/libresolv-2.31.so           |
+   |   49152 | 08:07 | 791231 | /usr/lib/libmount.so.1.1.0           |
+   |   12288 | 08:07 | 792817 | /usr/lib/libz.so.1.2.11              |
+   |    4096 | 08:07 | 790914 | /usr/lib/libgmodule-2.0.so.0.6200.5  |
+   |  151552 | 08:07 | 795572 | /usr/lib/libc-2.31.so                |
+   |   28672 | 08:07 | 795616 | /usr/lib/libpthread-2.31.so          |
+   |   32768 | 08:07 | 792569 | /usr/lib/libfuse.so.2.9.9            |
+   |  114688 | 08:07 | 790894 | /usr/lib/libglib-2.0.so.0.6200.5     |
+   |   57344 | 08:07 | 801080 | /usr/lib/libgobject-2.0.so.0.6200.5  |
+   |  221184 | 08:07 | 790879 | /usr/lib/libgio-2.0.so.0.6200.5      |
+   |   36864 | 08:07 | 806775 | /usr/lib/libjson-glib-1.0.so.0.400.4 |
+   |    8192 | 08:07 | 795561 | /usr/lib/ld-2.31.so                  |
+   |  135168 | 00:00 |      0 | [stack]                              |
+   |   12288 | 00:00 |      0 | [vvar]                               |
+   |    4096 | 00:00 |      0 | [vdso]                               |
+   |    4096 | 00:00 |      0 | [vsyscall]                           |
