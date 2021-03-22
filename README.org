@@ -55,3 +55,9 @@ echo "source ~/.adb.sh" >> ~/.zshrc
    |   12288 | 00:00 |      0 | [vvar]                               |
    |    4096 | 00:00 |      0 | [vdso]                               |
    |    4096 | 00:00 |      0 | [vsyscall]                           |
+
+** kbuild.py
+   Used to rebuild a single directory in kernel source tree.
+   #+begin_src bash
+     ./kbuild.py -k ~/work/kernel -d drivers/clk/
+   #+end_src
