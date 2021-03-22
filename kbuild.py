@@ -113,6 +113,12 @@ def main():
     filename_matcher = re.compile(_FILENAME_PATTERN)
     line_matcher = re.compile(_LINE_PATTERN)
 
+    single_file_filter = None;
+    if os.path.isfile(directory):
+        single_file_filter = directory
+        directory = os.path.dirname(directory)
+        pass
+
     compile_commands = []
     for dirpath, _, filenames in os.walk(directory):
         for filename in filenames:
@@ -134,10 +140,16 @@ def main():
                         logging.info('Could not add line from %s: %s',
                                      filepath, err)
     for compile_command in compile_commands:
+        if single_file_filter is not None:
+            if single_file_filter != os.path.join(compile_command['directory'],
+                                                  compile_command['file']):
+                continue
         exec_command = "cd {:s} && {:s}".format(compile_command['directory'],
                                                 compile_command['command'])
         print(exec_command)
         os.system(exec_command)
+        if single_file_filter is not None:
+            break
 
 if __name__ == '__main__':
     main()
