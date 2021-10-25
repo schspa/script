@@ -45,6 +45,10 @@ def parse_arguments():
                    'compile_commands.json in the search directory)')
     parser.add_argument('-o', '--output', type=str, help=output_help)
 
+    output_type_help = ('The Types to write compile_files.json (defaults to '
+                        'file-only)')
+    parser.add_argument('-t', '--outtype', type=str, help=output_type_help)
+
     log_level_help = ('The level of log messages to produce (one of ' +
                       ', '.join(_VALID_LOG_LEVELS) + '; defaults to ' +
                       _DEFAULT_LOG_LEVEL + ')')
@@ -61,8 +65,9 @@ def parse_arguments():
     directory = args.directory or os.getcwd()
     output = args.output or os.path.join(directory, _DEFAULT_OUTPUT)
     directory = os.path.abspath(directory)
+    outtype = args.outtype or None
 
-    return log_level, directory, output
+    return log_level, directory, output, outtype
 
 
 def process_line(root_directory, file_directory, command_prefix, relative_path):
@@ -109,7 +114,7 @@ def process_line(root_directory, file_directory, command_prefix, relative_path):
 
 def main():
     """Walks through the directory and finds and parses .cmd files."""
-    log_level, directory, output = parse_arguments()
+    log_level, directory, output, outtype = parse_arguments()
 
     level = getattr(logging, log_level)
     logging.basicConfig(format='%(levelname)s: %(message)s', level=level)
@@ -133,7 +138,12 @@ def main():
                     try:
                         entry = process_line(directory, dirpath,
                                              result.group(1), result.group(2))
-                        compile_commands.append(entry)
+                        if outtype is not None:
+                            compile_commands.append(entry[outtype])
+                            pass
+                        else:
+                            compile_commands.append(entry)
+                            pass
                     except ValueError as err:
                         logging.info('Could not add line from %s: %s',
                                      filepath, err)
