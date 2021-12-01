@@ -1,15 +1,15 @@
 # -*- coding:utf-8 -*-
 #+LANGUAGE:  zh
 #+TITLE:     README.org
-#+AUTHOR:    
+#+AUTHOR:    Schspa Shi
 #+EMAIL:     schspa@gmail.com
-#+DATE:     2019-01-21 Mon
+#+DATE:      <2019-01-21 21:35:37>
 #+DESCRIPTION:README.org
 #+KEYWORDS: shell
 #+TAGS:
-#+FILETAGS: 
+#+FILETAGS:
 #+OPTIONS:   H:2 num:nil toc:t \n:t @:t ::t |:t ^:nil -:t f:t *:t <:t
-#+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil 
+#+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil
 #+LATEX_HEADER: \usepackage{fontspec}
 #+LATEX_HEADER: \setmainfont{PingFang SC}
 
@@ -61,4 +61,18 @@ echo "source ~/.adb.sh" >> ~/.zshrc
    #+begin_src bash
    ./kbuild.py -k ~/work/kernel -d init
    ./kbuild.py -k ~/work/j5/kernel -d init/main.c
+   #+end_src
+
+** jekins
+
+   Trigger a jekins build & return it's console text and Report url in time.
+
+   #+begin_src bash
+     python3 ~/work/src/script/trigger-jekins-build.py -r https://ci.hobot.cc -u zhaohui.shi -b 'platform_j5/local_trouble_shooting' -j ~/work/src/kernel-ci/case/j5-jekins.json -c 'unit_test_j5_sleep-wakeup.json;unit_test_j5_pm/perflock.json'
+   #+end_src
+
+   Get logs from a jekins build to stdout
+
+   #+begin_src bash
+     python3 ~/work/src/script/get-jekins-log.py -r https://ci.hobot.cc -u zhaohui.shi -b platform_j5/j5_testing -n 2142
    #+end_src
