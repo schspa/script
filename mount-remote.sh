@@ -18,8 +18,8 @@ command_exists() {
 show_install() {
     cat << 'EOF'
 Please install required packages first!!
-Ubuntu:    sudo apt-get install socat
-ArchLinux: sudo pacman -S socat
+Ubuntu:    sudo apt-get install socat sshfs
+ArchLinux: sudo pacman -S socat sshfs
 EOF
 }
 
@@ -37,5 +37,5 @@ eval local_dir=$dir
 eval local_dir=$(readlink -f $local_dir)
 
 ssh -o StreamLocalBindUnlink=yes -R /tmp/$(id -n -u)_local.socket:localhost:22 ${remote} bash -s << EOF
-sshfs -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ProxyCommand="socat - UNIX-CLIENT:/tmp/%r_local.socket" -o idmap=user,uid=\$(id -u),gid=\$(id -g) -o auto_unmount  schspa@localhost:${local_dir} $remotedir
+sshfs -f -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ProxyCommand="socat - UNIX-CLIENT:/tmp/%r_local.socket" -o idmap=user,uid=\$(id -u),gid=\$(id -g) -o auto_unmount  schspa@localhost:${local_dir} $remotedir
 EOF
