@@ -28,7 +28,8 @@ import getpass
 import sys
 import click
 import requests
-
+import subprocess
+import tempfile
 
 BUILD_PROGRESSIVETEXT_OUTPUT = '%(folder_url)sjob/%(short_name)s/%(number)s/logText/progressiveText?start='
 
@@ -125,8 +126,9 @@ def wait_job_status(server, buildname, bn, verbose = False):
 @click.option('-j', '--json_file')
 @click.option('-c', '--case', default=None)
 @click.option('-b', '--buildname')
+@click.option('-t', '--tty', default=None)
 @click.option('--verbose', is_flag=True)
-def trigger_jekins_build(url, buildname, username, password, json_file, case, verbose):
+def trigger_jekins_build(url, buildname, username, password, json_file, case, tty, verbose):
     """Create a new jekins build and wait for build exit with status"""
 
     if username is None:
@@ -138,10 +140,21 @@ def trigger_jekins_build(url, buildname, username, password, json_file, case, ve
         password = sys.stdin.read().strip()
         pass
 
+    proc = None
+    if tty:
+        proc = subprocess.Popen(['socat', 'pty,link=/tmp/tty{:s},mode=666'.format(tty), tty])
+        pass
+
     server = jenkins.Jenkins(url, username=username, password=password)
     bn = create_job(server, buildname, json_file, case, verbose)
     dump_build_console_output(server, buildname, bn)
     ret = wait_job_status(server, buildname, bn, verbose)
+
+    if proc is not None:
+        proc.kill()
+        outs, errs = proc.communicate()
+        pass
+
     sys.exit(ret)
 
 if __name__ == '__main__':
