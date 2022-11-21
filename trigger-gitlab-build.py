@@ -47,7 +47,8 @@ def trigger_gitlab_build(url, project, ref, trigger_token, private_token, var_js
             "ref" : ref
         }
         if var_json is not None:
-            vardata = vardata | json.loads(var_json)
+            vardata = {**vardata, **json.loads(var_json)}
+            pass
 
         r = requests.post(url = "{:s}/api/v4/projects/{:d}/trigger/pipeline".format(
         url, project), data = vardata)
