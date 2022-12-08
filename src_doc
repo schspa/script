@@ -41,6 +41,9 @@ use strict;
 # 25/07/2012 - Added support for HTML5
 # -- Dan Luedtke <mail@danrl.de>
 
+# 25/07/2022 - Added support for table format for HTML
+# -- Schspa Shi <schspa@gmail.com>
+
 sub usage {
     my $message = <<"EOF";
 Usage: $0 [OPTION ...] FILE ...
@@ -54,6 +57,7 @@ Documentation/doc-guide/kernel-doc.rst for the documentation comment syntax.
 Output format selection (mutually exclusive):
   -man			Output troff manual page format. This is the default.
   -rst			Output reStructuredText format.
+  -html			Output html table format.
   -none			Do not output documentation, only warnings.
 
 Output format selection modifier (affects only ReST output):
@@ -432,8 +436,10 @@ while ($ARGV[0] =~ m/^--?(.*)/) {
 	$output_mode = "rst";
 	@highlights = @highlights_rst;
 	$blankline = $blankline_rst;
+    } elsif ($cmd eq "html") {
+	  $output_mode = "html";
     } elsif ($cmd eq "none") {
-	$output_mode = "none";
+      $output_mode = "none";
     } elsif ($cmd eq "module") { # not needed for XML, inherits from calling document
 	$modulename = shift @ARGV;
     } elsif ($cmd eq "function") { # to only output specific functions
@@ -1128,6 +1134,222 @@ sub output_struct_rst(%) {
 
     $lineprefix = $oldprefix;
     output_section_rst(@_);
+}
+
+## html mode output functions
+
+sub output_struct_html(%) {
+    my %args = %{$_[0]};
+    my ($parameter);
+    my $oldprefix = $lineprefix;
+
+    print <<"EOF";
+    <table>
+      <tr>
+        <th>
+EOF
+    my $name = $args{'struct'};
+    print $name . "</th></tr>\n";
+    # print_lineno($declaration_start_line);
+    #$lineprefix = "   ";
+    #output_highlight_rst($args{'purpose'});
+    #print "\n";
+
+    print "<tr><td>";
+    print "**Definition**\n\n";
+    print "::\n\n";
+    my $declaration = $args{'definition'};
+    $declaration =~ s/\t/  /g;
+    print "  " . $args{'type'} . " " . $args{'struct'} . " {\n$declaration  };\n\n";
+
+    print "**Members**\n\n";
+    $lineprefix = "  ";
+    foreach $parameter (@{$args{'parameterlist'}}) {
+	($parameter =~ /^#/) && next;
+
+	my $parameter_name = $parameter;
+	$parameter_name =~ s/\[.*//;
+
+	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+	$type = $args{'parametertypes'}{$parameter};
+        print_lineno($parameterdesc_start_lines{$parameter_name});
+	print "``" . $parameter . "``\n";
+	output_highlight_rst($args{'parameterdescs'}{$parameter_name});
+	print "\n";
+    }
+    print "\n";
+
+    $lineprefix = $oldprefix;
+    output_section_rst(@_);
+    print "</td></tr></table><br>\n";
+}
+
+sub output_highlight_html {
+    my $input = join "\n",@_;
+    my $output = "";
+    my $line;
+    my $in_literal = 0;
+    my $litprefix;
+    my $block = "";
+
+    foreach $line (split "\n",$input) {
+	#
+	# If we're in a literal block, see if we should drop out
+	# of it.  Otherwise pass the line straight through unmunged.
+	#
+	if ($in_literal) {
+	    if (! ($line =~ /^\s*$/)) {
+		#
+		# If this is the first non-blank line in a literal
+		# block we need to figure out what the proper indent is.
+		#
+		if ($litprefix eq "") {
+		    $line =~ /^(\s*)/;
+		    $litprefix = '^' . $1;
+		    $output .= $line . "\n";
+		} elsif (! ($line =~ /$litprefix/)) {
+		    $in_literal = 0;
+		} else {
+		    $output .= $line . "\n";
+		}
+	    } else {
+		$output .= $line . "\n";
+	    }
+	}
+	#
+	# Not in a literal block (or just dropped out)
+	#
+	if (! $in_literal) {
+	    $block .= $line . "\n";
+	    if (($line =~ /$sphinx_literal/) || ($line =~ /$sphinx_cblock/)) {
+		$in_literal = 1;
+		$litprefix = "";
+		$output .= highlight_block($block);
+		$block = ""
+	    }
+	}
+    }
+
+    if ($block) {
+	$output .= highlight_block($block);
+    }
+    foreach $line (split "\n", $output) {
+	print $lineprefix . $line . "\n";
+    }
+}
+
+sub output_section_html(%) {
+  my %args = %{$_[0]};
+  my $section;
+  my $oldprefix = $lineprefix;
+  $lineprefix = "";
+
+  foreach $section (@{$args{'sectionlist'}}) {
+    # print "**$section**\n\n";
+    print_lineno($section_start_lines{$section});
+	output_highlight_rst($args{'sections'}{$section});
+    #print "$section_start_lines{$section}";
+    #print $args{'sections'}{$section};
+    #my $valbuf = $args{'sections'}{$section};
+    #$valbuf =~ s/[\n\r]/\ /g;
+    #print "$valbuf";
+	print "\n";
+  }
+  #print "\n";
+  $lineprefix = $oldprefix;
+}
+
+sub output_function_html(%) {
+    my %args = %{$_[0]};
+    my ($parameter, $section);
+    my $oldprefix = $lineprefix;
+    my $start = "";
+    my $is_macro = 0;
+
+    print <<"EOF";
+    <table>
+      <tr>
+        <th style="width:20%"></th>
+        <th>
+EOF
+
+	if ($args{'typedef'}) {
+	    print_lineno($declaration_start_line);
+	    print "   **Typedef**: ";
+	    $lineprefix = "";
+	    output_highlight_rst($args{'purpose'});
+	    $start = "\n\n**Syntax**\n\n  ";
+	} else {
+	    print "``" if ($is_macro);
+	}
+    if ($args{'functiontype'} ne "") {
+	$start .= $args{'functiontype'} . " " . $args{'function'} . " (";
+    } else {
+	$start .= $args{'function'} . " (";
+    }
+
+    print $start;
+    my $count = 0;
+    foreach my $parameter (@{$args{'parameterlist'}}) {
+      if ($count ne 0) {
+	    print ", ";
+      }
+      $count++;
+      $type = $args{'parametertypes'}{$parameter};
+
+      if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
+	    # pointer-to-function
+	    print $1 . $parameter . ") (" . $2 . ")";
+      } else {
+	    print $type;
+      }
+    }
+    if ($is_macro) {
+      print ")``";
+    } else {
+      print ")";
+    }
+    print "</td></tr>\n";
+
+    print "<tr> <td>Description</td> <td>$args{'purpose'}</td></tr>\n";
+    print "<tr> <td>INPUT</td> <td>";
+
+    $lineprefix = "  ";
+    foreach $parameter (@{$args{'parameterlist'}}) {
+	my $parameter_name = $parameter;
+	$parameter_name =~ s/\[.*//;
+	$type = $args{'parametertypes'}{$parameter};
+	if (defined $type && $type ne "") {
+	    print "$type : ";
+	} else {
+	    print "$parameter::";
+	}
+
+    # print_lineno($parameterdesc_start_lines{$parameter_name});
+
+	if (defined($args{'parameterdescs'}{$parameter_name}) &&
+	    $args{'parameterdescs'}{$parameter_name} ne $undescribed) {
+      # output_highlight_html($args{'parameterdescs'}{$parameter_name});
+      print "$args{'parameterdescs'}{$parameter_name}";
+      #my $param_desc="$args{'parameterdescs'}{$parameter_name}";
+      #$param_desc =~ s/[\n\r]//g;
+      #print $param_desc;
+	} else {
+	    print "  *undescribed*";
+	}
+    }
+    print "</td></tr>\n";
+    print "<tr> <td>Output</td> <td>";
+
+    $lineprefix = $oldprefix;
+    output_section_html(@_);
+    print "</td></tr>\n</tbody>\n</table>\n";
+    print <<"EOF";
+        </td>
+      </tr>
+    </table><br>
+EOF
+
 }
 
 ## none mode output functions
@@ -2424,6 +2646,7 @@ foreach (@ARGV) {
     chomp;
     process_file($_);
 }
+
 if ($verbose && $errors) {
   print STDERR "$errors errors\n";
 }
