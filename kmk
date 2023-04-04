@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+
+function usage () {
+    cat <<EOUSAGE
+$(basename $0) [--kdir kernel-dir] [--dconf deconfig]
+    --kdir: Kernel Source Address
+    --dconf: defconfig to use
+    --kout: Kernel build output
+    --help: Show this help
+EOUSAGE
+    exit 0
+}
+
+extra_args=
+
+kernel_dir=$(realpath "${HOME}/work/src/linux")
+dconfig="defconfig"
+kernel_out="~/work/tmp/linux-out"
+
+aparse() {
+    while [[ $# > 0 ]] ; do
+        case "$1" in
+            --kdir)
+                kernel_dir=$2
+                shift 2
+                echo "Using kernel at ${kernel_dir}"
+                ;;
+            --dconf)
+                dconfig=$2
+                shift 2
+                ;;
+            --kout)
+                kernel_out=$2
+                if [ ! -e $2 ]; then
+                    mkdir -p $2
+                fi
+                shift 2
+                ;;
+            --help)
+                usage
+                shift
+                ;;
+            *)
+                extra_args="$extra_args $1"
+                shift
+                ;;
+        esac
+    done
+}
+
+aparse "$@"
+
+echo extra args: $extra_args
+echo ${dconfig}
+
+#
+# Auto probe toolchains
+#
+export ARCH=arm64
+
+cross_toolchains=(
+    aarch64-none-elf-
+    aarch64-unknown-linux-gnu-
+)
+
+for cross_toolchain in ${cross_toolchains[@]}
+do
+    which ${cross_toolchain}gcc 1>/dev/null 2>&1
+    if [ $? == 0 ]; then
+        echo "Found ${cross_toolchain}"
+        export CROSS_COMPILE=${cross_toolchain}
+        break
+    fi
+done
+
+if [ -z $CROSS_COMPILE ]; then
+    echo "Can't found a valid toolchains"
+    exit -1
+fi
+
+
+pushd $kernel_dir
+
+# use clang
+export LLVM=1
+
+if [ x"$extra_args" != x ]; then
+    lkmake O=${kernel_out} $extra_args -j8
+    exit $?
+fi
+
+eval kernel_out=$kernel_out
+export OUT_BUILD_KERNEL_DIR=$kernel_out
+export SRC_KERNEL_DIR=$kernel_dir
+
+# Remove outdated kernel module
+rm -rif ${kernel_out}/_install
+
+#ROOTFS=~/work/src/rootfs/rootfs.cpio.gz
+ROOTFS=~/work/images/initramfs.cpio
+# ~/work/src/rootfs/rootfs.cpio.gz
+ mkdir -p ${kernel_out}/_install &&
+     lkmake O=${kernel_out} ${dconfig}
+ sed -i 's/CONFIG_MODULE_SIG_FORCE=y/# CONFIG_MODULE_SIG_FORCE is not set/g' ${kernel_out}/.config
+ sed -i 's/CONFIG_MODULE_SIG=y/# CONFIG_MODULE_SIG is not set/g' ${kernel_out}/.config
+ sed -i 's/CONFIG_MODULE_SIG_ALL=y/# CONFIG_MODULE_SIG_ALL is not set/g' ${kernel_out}/.config
+     lkmake CONFIG_MODULE_SIG_FORCE=n CONFIG_INITRAMFS_SOURCE=${ROOTFS} O=${kernel_out} -j8 &&
+         lkmake O=${kernel_out} modules_install INSTALL_MOD_PATH=${kernel_out}/_install 2>/dev/null
+
+     #LINUX_VER=$(cat ${kernel_out}/include/config/kernel.release)
+     #depmod -b ${kernel_out}/_install/lib/modules/${LINUX_VER} -F ${kernel_out}/System.map ${LINUX_VER}
+
+    if [ -e ~/work/src/code_snippet/kernel_moduless/ ]; then
+        export KERNELDIR=${kernel_out}
+        export ROOT_DIR=~/work/src/code_snippet/
+        pushd ~/work/src/code_snippet/kernel_module/
+        lkmake -j8
+        find . -name "*.ko" -exec ${KERNELDIR}/scripts/sign-file sha512 ${KERNELDIR}/certs/signing_key.pem ${KERNELDIR}/certs/signing_key.x509 {} \;
+        popd
+    fi
+#    ~/work/sync.sh
+popd
