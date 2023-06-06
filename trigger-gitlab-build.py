@@ -92,6 +92,8 @@ def trigger_gitlab_build(url, project, ref, trigger_token, private_token, var_js
         pass
 
     res = json.loads(r.text)
+    click.echo('Commit shot id %s' % (res[0]['commit']['short_id']))
+    click.echo('title %s' % (res[0]['commit']['title']))
     for job in res:
         # click.secho("Name: {:s} id: {:d}".format(job['name'], job['id']), bg='black', fg='green')
         # print(json.dumps(job, sort_keys=True, indent=4))
