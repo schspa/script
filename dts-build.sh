@@ -4,6 +4,7 @@
 ## reference
 # https://gist.github.com/luaraneda/c12d5d111d6ccac00319d1948b2fc955
 
+set -e
 if [[ $# -lt 2 ]]; then
     echo "Usage: $0 [cpp flags] [dts file]"
     exit -1
