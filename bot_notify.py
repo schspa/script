@@ -107,16 +107,7 @@ def str_to_class(module_name, class_name):
         logging.error('Module does not exist')
     return class_ or None
 
-@click.command()
-@click.option('--bottype', multiple=True,
-              type=click.Choice(list(map(lambda x: x.__name__, NotifyBots)), case_sensitive=False),
-              default = [NotifyBots[0].__name__])
-@click.option('--botname', multiple=True, default=['default'], help = 'if not specified, use default as name')
-@click.option('-s', '--secret', default=None, help = 'if not specified, will try to get it from keyring/input')
-@click.option('-t', '--title', default="消息同步")
-@click.option('-m', '--message', default="Test notify message")
-@click.option('--run/--try-run', default=True)
-def notify_robot(bottype, botname, secret, title, message, run):
+def notify_robot(bottype, botname, secret = None, title = 'Title', message = 'Message', run = True):
     """send notify to chat robot"""
 
     if len(bottype) != len(botname):
@@ -138,6 +129,18 @@ def notify_robot(bottype, botname, secret, title, message, run):
         bot = _class(bname, secret)
         bot.send_notify(title, message, run)
 
-if __name__ == '__main__':
-    notify_robot()
+@click.command()
+@click.option('--bottype', multiple=True,
+              type=click.Choice(list(map(lambda x: x.__name__, NotifyBots)), case_sensitive=False),
+              default = [NotifyBots[0].__name__])
+@click.option('--botname', multiple=True, default=['default'], help = 'if not specified, use default as name')
+@click.option('-s', '--secret', default=None, help = 'if not specified, will try to get it from keyring/input')
+@click.option('-t', '--title', default="消息同步")
+@click.option('-m', '--message', default="Test notify message")
+@click.option('--run/--try-run', default=True)
+def notify_robot_cli(bottype, botname, secret, title, message, run):
+    notify_robot(bottype, botname, secret, title, message, run)
+    return
 
+if __name__ == '__main__':
+    notify_robot_cli()
