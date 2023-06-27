@@ -25,6 +25,8 @@ import requests
 import click
 import importlib
 import keyring
+import traceback
+
 
 class WxBot:
     def __init__(self, name, apikey):
@@ -48,10 +50,15 @@ class WxBot:
 
         server = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=" + \
             self.apikey
-        r = requests.post(url = server, data = json.dumps(data),
-                          headers = {'Content-Type': 'application/json'})
-        click.echo("Notify weixin server, status: {}".format(r.status_code))
-        return
+        try:
+            r = requests.post(url = server, data = json.dumps(data),
+                              headers = {'Content-Type': 'application/json'})
+            click.echo("Notify weixin server, status: {}".format(r.status_code))
+            return True
+        except requests.exceptions.ConnectionError as e:
+            click.echo("Notify weixin server failed".format(r.status_code))
+            traceback.print_exception(*sys.exc_info())
+        return False
     pass
 
 class FsBot:
@@ -88,10 +95,16 @@ class FsBot:
 
         server = "https://open.feishu.cn/open-apis/bot/v2/hook/" + \
             self.apikey
-        r = requests.post(url = server, data = json.dumps(data),
+        try:
+            r = requests.post(url = server, data = json.dumps(data),
                           headers = {'Content-Type': 'application/json'})
-        click.echo("Notify feishu server, status: {}".format(r.status_code))
-        return
+            click.echo("Notify feishu server, status: {}".format(r.status_code))
+            return True
+        except requests.exceptions.ConnectionError as e:
+            click.echo("Notify feishu server failed".format(r.status_code))
+            traceback.print_exception(*sys.exc_info())
+
+        return False
 
 NotifyBots = [FsBot, WxBot]
 
@@ -127,7 +140,7 @@ def notify_robot(bottype, botname, secret = None, title = 'Title', message = 'Me
             click.secho('Secret for bot %s saved to keyring' % (pwkey), bg='black', fg='green')
 
         bot = _class(bname, secret)
-        bot.send_notify(title, message, run)
+        return bot.send_notify(title, message, run)
 
 @click.command()
 @click.option('--bottype', multiple=True,
@@ -139,7 +152,10 @@ def notify_robot(bottype, botname, secret = None, title = 'Title', message = 'Me
 @click.option('-m', '--message', default="Test notify message")
 @click.option('--run/--try-run', default=True)
 def notify_robot_cli(bottype, botname, secret, title, message, run):
-    notify_robot(bottype, botname, secret, title, message, run)
+    ret = notify_robot(bottype, botname, secret, title, message, run)
+    if ret:
+        sys.exit(-1)
+
     return
 
 if __name__ == '__main__':
