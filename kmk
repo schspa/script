@@ -99,13 +99,39 @@ rm -rif ${kernel_out}/_install
 #ROOTFS=~/work/src/rootfs/rootfs.cpio.gz
 ROOTFS=~/work/images/initramfs.cpio
 # ~/work/src/rootfs/rootfs.cpio.gz
- mkdir -p ${kernel_out}/_install &&
-     lkmake O=${kernel_out} ${dconfig}
- sed -i 's/CONFIG_MODULE_SIG_FORCE=y/# CONFIG_MODULE_SIG_FORCE is not set/g' ${kernel_out}/.config
- sed -i 's/CONFIG_MODULE_SIG=y/# CONFIG_MODULE_SIG is not set/g' ${kernel_out}/.config
- sed -i 's/CONFIG_MODULE_SIG_ALL=y/# CONFIG_MODULE_SIG_ALL is not set/g' ${kernel_out}/.config
-     lkmake CONFIG_MODULE_SIG_FORCE=n CONFIG_INITRAMFS_SOURCE=${ROOTFS} O=${kernel_out} -j8 &&
-         lkmake O=${kernel_out} modules_install INSTALL_MOD_PATH=${kernel_out}/_install 2>/dev/null
+ mkdir -p ${kernel_out}/_install
+ lkmake O=${kernel_out} ${dconfig}
+
+ echo "apply my enabled configs"
+ ENABLE_CONFIGS=(
+     CONFIG_GDB_SCRIPTS
+     CONFIG_DYNAMIC_DEBUG_CORE
+     CONFIG_DYNAMIC_DEBUG
+     CONFIG_FW_LOADER_DEBUG
+     CONFIG_TEST_DYNAMIC_DEBUG
+     CONFIG_DEBUG_IRQFLAGS
+     CONFIG_VIRTIO_MMIO
+     CONFIG_VIRTIO_NET
+     CONFIG_BLK_DEV_INITRD
+     CONFIG_RD_GZIP
+ )
+
+ for config in ${ENABLE_CONFIGS[@]}; do
+     echo "enable config: ${config}"
+     ${kernel_out}/source/scripts/config --file ${kernel_out}/.config -e $config
+ done
+
+ echo "apply my disabled configs"
+ DISABLE_CONFIGS=(
+     CONFIG_MODULE_SIG
+ )
+ for config in ${DISABLE_CONFIGS[@]}; do
+     echo "disable config: ${config}"
+     ${kernel_out}/source/scripts/config --file ${kernel_out}/.config -d $config
+ done
+
+ lkmake O=${kernel_out} -j8
+ lkmake O=${kernel_out} modules_install INSTALL_MOD_PATH=${kernel_out}/_install 2>/dev/null
 
      #LINUX_VER=$(cat ${kernel_out}/include/config/kernel.release)
      #depmod -b ${kernel_out}/_install/lib/modules/${LINUX_VER} -F ${kernel_out}/System.map ${LINUX_VER}
