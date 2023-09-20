@@ -52,14 +52,22 @@ def my_ip_address():
     """Cloudflare API code - example"""
 
     # This list is adjustable - plus some v6 enabled services are needed
+    # https://www.my-ip.io/api-usage
     # url = 'http://myip.dnsomatic.com'
-    # url = 'http://www.trackip.net/ip'
-    url = 'http://myexternalip.com/raw'
-    # url = 'https://api.ipify.org'
-    try:
-        ip_address = requests.get(url).text
-    except:
-        error_report('%s: failed' % (url))
+    ip_test_url = [
+        # 'http://myip.dnsomatic.com',
+        # 'http://myexternalip.com/raw',
+        # 'http://www.trackip.net/ip',
+        'https://api64.ipify.org'
+    ]
+    for url in ip_test_url:
+        response = requests.get(url, headers = {
+            'accept': 'text/plain',
+        })
+        if response.ok:
+            ip_address = response.text
+            break
+
     if ip_address == '':
         error_report('%s: failed' % (url))
 
@@ -142,7 +150,7 @@ def cf_update_myip(token, zone_name, domain, ip, debug, feishu_secret):
     g_feishu_secret = feishu_secret
 
     if ip is None:
-        ip = my_ip_address()
+        ip = my_ip_address()[0]
 
     if ip is None:
         print("Failed to aws instance ip address")
