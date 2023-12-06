@@ -46,17 +46,17 @@ def request(method, url, headers, payload=None) -> dict:
     """
     payload = {} if not payload else payload
     response = requests.request(method, url, headers=headers, json=payload)
-    logger.info(f"{'+' * 88}")
-    logger.info(f"URL: {url} || X-Tt-Logid: {response.headers['X-Tt-Logid']}")
-    logger.info(f"headers: {headers}")
-    logger.info(f"payload: {payload}")
+    logger.debug(f"{'+' * 88}")
+    logger.debug(f"URL: {url} || X-Tt-Logid: {response.headers['X-Tt-Logid']}")
+    logger.debug(f"headers: {headers}")
+    logger.debug(f"payload: {payload}")
 
     resp = {}
     if response.text[0] == '{':
         resp = response.json()
-        logger.info(f"response: {resp}")
+        logger.debug(f"response: {resp}")
     else:
-        logger.info(f"response: {response.text}")
+        logger.debug(f"response: {response.text}")
 
     code = resp.get("code", -1)
     if code == -1:
@@ -139,17 +139,17 @@ class FeishuAuth(object):
         r_headers = {**auth_headers, **headers}
         payload = {} if not payload else payload
         response = self.session.request(method, url, params = params, headers=r_headers, json=payload)
-        logger.info(f"{'+' * 88}")
-        logger.info(f"URL: {url} || X-Tt-Logid: {response.headers['X-Tt-Logid']}")
-        logger.info(f"headers: {r_headers}")
-        logger.info(f"payload: {payload}")
+        logger.debug(f"{'+' * 88}")
+        logger.debug(f"URL: {url} || X-Tt-Logid: {response.headers['X-Tt-Logid']}")
+        logger.debug(f"headers: {r_headers}")
+        logger.debug(f"payload: {payload}")
 
         resp = {}
         if response.text[0] == '{':
             resp = response.json()
-            logger.info(f"response: {resp}")
+            logger.debug(f"response: {resp}")
         else:
-            logger.info(f"response: {response.text}")
+            logger.debug(f"response: {response.text}")
 
         code = resp.get("code", -1)
         if code == -1:

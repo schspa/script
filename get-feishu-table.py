@@ -91,9 +91,12 @@ class SpreadSheets(FeishuAuth):
             self.sheet_id = None
 
         logger.debug(f'Create sheet object token: {self.sheet_token}, sheet_id: {self.sheet_id}')
-
+        self.check()
 
     def check(self):
+        '''
+        get sheet basic information
+        '''
         """获取电子表格信息
 
         https://open.feishu.cn/document/ukTMukTMukTM/uUDN04SN0QjL1QDN/sheets-v3/spreadsheet/get
@@ -227,7 +230,7 @@ FEISHU_HOST = 'https://open.feishu.cn'
 @click.option('--setup', 'setup', is_flag = True, default = False)
 @click.option('-v', '--verbose', is_flag=True, default = False)
 def get_feishu_table(sheet_url, output_file, app_cfg, setup, verbose):
-    handler = {"sink": sys.stderr, "level": "ERROR"}
+    handler = {"sink": sys.stderr, "level": "INFO"}
     if verbose:
         handler = {"sink": sys.stderr, "level": "DEBUG"}
     logger.configure(handlers=[handler])
@@ -258,7 +261,6 @@ def get_feishu_table(sheet_url, output_file, app_cfg, setup, verbose):
     sheets = SpreadSheets(
         feishu_cfg['feishu_host'], feishu_cfg['app_id'],
         feishu_cfg['app_secret'], sheet_url)
-    sheets.check()
     sheets.to_excel(output_file)
 
 if __name__ == '__main__':
