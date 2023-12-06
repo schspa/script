@@ -92,6 +92,7 @@ fi
 eval kernel_out=$kernel_out
 export OUT_BUILD_KERNEL_DIR=$kernel_out
 export SRC_KERNEL_DIR=$kernel_dir
+export KCFLAGS="-Wno-int-conversion -Wno-incompatible-pointer-types-discards-qualifiers"
 
 # Remove outdated kernel module
 rm -rif ${kernel_out}/_install
@@ -124,6 +125,7 @@ ROOTFS=~/work/images/initramfs.cpio
  echo "apply my disabled configs"
  DISABLE_CONFIGS=(
      CONFIG_MODULE_SIG
+     CONFIG_MODVERSIONS
  )
  for config in ${DISABLE_CONFIGS[@]}; do
      echo "disable config: ${config}"
