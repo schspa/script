@@ -115,6 +115,9 @@ ROOTFS=~/work/images/initramfs.cpio
      CONFIG_VIRTIO_NET
      CONFIG_BLK_DEV_INITRD
      CONFIG_RD_GZIP
+     CONFIG_GENERIC_PTDUMP
+     CONFIG_PTDUMP_CORE
+     CONFIG_PTDUMP_DEBUGFS
  )
 
  for config in ${ENABLE_CONFIGS[@]}; do
