@@ -24,6 +24,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    system("rm ./enter_root_bash");
     return system("bash");
 }
 ENDOFMESSAGE
