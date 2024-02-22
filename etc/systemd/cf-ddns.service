@@ -1,0 +1,5 @@
+[Unit]
+Description=cf ddns service
+
+[Service]
+ExecStart=cf_ddns.py

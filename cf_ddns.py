@@ -156,7 +156,7 @@ def cf_update_myip(token, zone_name, domain, ip, debug, feishu_secret):
         print("Failed to aws instance ip address")
         error_report(-1)
 
-    notify(f'Got ip address: {ip}')
+    # notify(f'Got ip address: {ip}')
     cf = CloudFlare.CloudFlare(token = token, debug=debug)
 
     def get_zone_id(name):
@@ -207,7 +207,7 @@ def configure(ctx, param, filename):
     show_default = True,
 )
 def cli(**kwargs):
-    print(json.dumps(kwargs, sort_keys=True, indent=4))
+    # print(json.dumps(kwargs, sort_keys=True, indent=4))
     cf_update_myip(**kwargs)
 
 if __name__ == '__main__':

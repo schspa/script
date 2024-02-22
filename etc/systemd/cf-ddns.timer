@@ -1,0 +1,9 @@
+[Unit]
+Description=cf-ddns timer
+
+[Timer]
+OnUnitActiveSec=5
+Unit=cf-ddns.service
+
+[Install]
+WantedBy=multi-user.target
